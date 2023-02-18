@@ -1,0 +1,1 @@
+export const DEFAULT_OTP_MINUTES_TO_EXPIRE = 5;
