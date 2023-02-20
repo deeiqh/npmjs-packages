@@ -20,17 +20,34 @@ export class SendOperationOtpGuard implements CanActivate {
   logger = new Logger(SendOperationOtpGuard.name);
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const data =
-      context.switchToRpc().getData() || context.switchToHttp().getRequest();
+    const data = context.switchToHttp().getRequest();
 
-    if (!data?.otpHeaders) {
-      this.logger.error(
-        `[Error] ${SendOperationOtpGuard.name}: Empty context data`,
-      );
+    if (!data) {
+      this.logger.error(`${SendOperationOtpGuard.name}: Empty context data`);
       return false;
     }
 
-    const { targetType, target, operationUUID } = data.otpHeaders;
+    let targetType: string, target: string, operationUUID: string;
+
+    switch (true) {
+      case !!data.headers: {
+        ({
+          'otp-target-type': targetType,
+          'otp-target': target,
+          'otp-new-uuid-for-this-operation': operationUUID,
+        } = data.headers);
+        break;
+      }
+      case !!data.otpRpcData: {
+        ({ targetType, target, operationUUID } = data.otpRpcData);
+        break;
+      }
+      default: {
+        const error = new Error('Data in headers not captured');
+        this.logger.error(error.message);
+        throw error;
+      }
+    }
 
     const numberDigits = 6;
     const chars = '0123456789abcdefghijklmnopqrstuvwxyz';

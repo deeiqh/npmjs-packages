@@ -2,7 +2,13 @@
   "name": "otp-guards",
   "version": "0.0.1",
   "description": "Send and validate one time password through guards in nestjs",
-  "keywords": ["otp", "guards", "nestjs", "send", "validate"],
+  "keywords": [
+    "otp",
+    "guards",
+    "nestjs",
+    "send",
+    "validate"
+  ],
   "author": "",
   "private": false,
   "license": "ISC",

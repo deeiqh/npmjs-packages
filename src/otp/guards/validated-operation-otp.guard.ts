@@ -12,8 +12,8 @@ import { EVALUATED_OPERATION_OTP_RESULT } from '../consts/events.const';
 export class ValidatedOperationOtpGuard implements CanActivate {
   constructor(
     private readonly eventEmitter: EventEmitter,
-    @Inject('OTP_MILLISECONDS_TO_EXPIRE')
-    private readonly otpMillisecondsToExpire: number,
+    @Inject('OTP_SECONDS_TO_EXPIRE')
+    private readonly otpSecondsToExpire: number,
   ) {}
   logger = new Logger(ValidatedOperationOtpGuard.name);
 
@@ -41,7 +41,8 @@ export class ValidatedOperationOtpGuard implements CanActivate {
     });
 
     const intervalMilliseconds = 100;
-    const maxIterations = this.otpMillisecondsToExpire / intervalMilliseconds;
+    const maxIterations =
+      (this.otpSecondsToExpire * 1000) / intervalMilliseconds;
     let iteration = 0;
     let intervalId: NodeJS.Timer;
 
