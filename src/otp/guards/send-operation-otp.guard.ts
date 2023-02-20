@@ -6,6 +6,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { ClientKafka } from '@nestjs/microservices';
 import { Cache } from 'cache-manager';
 import { SEND_OPERATION_OTP } from '../consts/events.const';
@@ -20,14 +21,16 @@ export class SendOperationOtpGuard implements CanActivate {
   logger = new Logger(SendOperationOtpGuard.name);
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const data = context.switchToHttp().getRequest();
+    const data =
+      context.switchToHttp().getRequest() ??
+      GqlExecutionContext.create(context).getContext().req;
 
     if (!data) {
       this.logger.error(`${SendOperationOtpGuard.name}: Empty context data`);
       return false;
     }
 
-    let targetType: string, target: string, operationUUID: string;
+    let targetType, target, operationUUID;
 
     switch (true) {
       case !!data.headers: {
@@ -42,11 +45,11 @@ export class SendOperationOtpGuard implements CanActivate {
         ({ targetType, target, operationUUID } = data.otpRpcData);
         break;
       }
-      default: {
-        const error = new Error('Data in headers not captured');
-        this.logger.error(error.message);
-        throw error;
-      }
+    }
+
+    if (!targetType || !target || !operationUUID) {
+      this.logger.error('Data in headers not fulfilled');
+      return false;
     }
 
     const numberDigits = 6;
